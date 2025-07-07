@@ -1,12 +1,21 @@
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-const token = '7292394758:AAGSbXGUAbg2JTBt4fuGnYRcIUULNu2m6a0';
+const token = process.env.BOT_TOKEN;
+const bot = new TelegramBot(token, { webHook: { port: 3000 } });
 
-const bot = new TelegramBot(token, { polling: true });
+const app = express();
+app.use(bodyParser.json());
+
+const URL = process.env.RENDER_EXTERNAL_URL || 'https://muhammadziyo-uz.onrender.com';
+bot.setWebHook(`${URL}/bot${token}`);
 
 bot.setMyCommands([
   { command: '/start', description: "Bot haqida ma'lumot" },
   { command: '/info', description: "O'zingiz haqingizda ma'lumot" },
+  { command: '/portfolio', description: "Muhammadziyo portfoliosi" },
+  { command: '/inline_portfolio', description: "Muhammadziyo portfoliosi" },
   { command: '/username', description: "Usernameingiz" },
   { command: '/botavatar', description: "Botimizning avatar rasmi" },
   { command: '/dinogame', description: "chromedagi dino game🦖" },
@@ -17,7 +26,7 @@ bot.on('message', (msg) => {
   const text = msg.text;
 
   if (text === '/start') {
-    const starts = {
+    return bot.sendMessage(chatId, `Assalomu alaykum hurmatli ${msg.from?.first_name}!`, {
       reply_markup: {
         inline_keyboard: [
           [
@@ -33,9 +42,7 @@ bot.on('message', (msg) => {
           ]
         ]
       }
-    };
-
-    return bot.sendMessage(chatId, `Assalomu alaykum hurmatli ${msg.from?.first_name}!`, starts);
+    });
   }
 
   if (text === '/info') {
@@ -66,7 +73,37 @@ bot.on('message', (msg) => {
     });
   }
 
-  return bot.sendMessage(chatId, "Uzur, bu buyruqni tushunmadim :(");
+  if (text === '/portfolio') {
+    return bot.sendMessage(chatId, "Muhammadziyo portfoliosini ko'rishingiz mumkin.", {
+      reply_markup: {
+        keyboard: [
+          [
+            {
+              text: "Portfolioni ko'rish",
+              web_app: { url: "https://muhammadziyo011.netlify.app/" }
+            }
+          ]
+        ]
+      }
+    });
+  }
+
+  if(text === '/inline_portfolio'){
+    return bot.sendMessage(chatId, "Muhammadziyo portfoliosini ko'rishingiz mumkin.", {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Portfolioni ko'rish",
+              web_app: { url: "https://muhammadziyo011.netlify.app/" }
+            }
+          ]
+        ]
+      }
+    });
+  }
+
+  bot.sendMessage(chatId, "Uzur, gapingizga tushunmadim.");
 });
 
 bot.on('callback_query', (query) => {
@@ -78,7 +115,7 @@ bot.on('callback_query', (query) => {
   }
 
   if (data === '/username') {
-    return bot.sendMessage(chatId, `Sizning username: @${msg.from?.username}`);
+    return bot.sendMessage(chatId, `Sizning username: @${query.from?.username}`);
   }
 
   if (data === '/botavatar') {
